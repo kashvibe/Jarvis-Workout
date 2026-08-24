@@ -1,0 +1,17 @@
+{
+  "name": "Project Apex Jarvis Protocol",
+  "short_name": "Jarvis Workout",
+  "description": "Hypertrophy Protocol optimized for extreme muscle growth.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050101",
+  "theme_color": "#050101",
+  "icons": [
+    {
+      "src": "Jarvis icon.webp",
+      "sizes": "192x192 512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
