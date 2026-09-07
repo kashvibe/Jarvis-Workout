@@ -15,6 +15,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Quill.js for Rich Text Editing -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
     <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -290,7 +294,7 @@
             );
         };
 
-        const ExerciseRow = ({ dayId, exercise, index, initialWeight, onSaveWeight, colorAccent, completedSets, onSetComplete }) => {
+        const ExerciseRow = ({ dayId, exercise, index, initialWeight, onSaveWeight, colorAccent, completedSets, onSetComplete, onEdit, onDelete }) => {
             const [weight, setWeight] = useState(initialWeight || '');
             const [isFocused, setIsFocused] = useState(false);
             const [showSaved, setShowSaved] = useState(false);
@@ -333,10 +337,16 @@
                                     {String(index + 1).padStart(2, '0')}
                                 </span>
                             </div>
-                            <div className="pt-1 md:pt-2">
-                                <h5 className="text-white text-xl md:text-2xl font-semibold tracking-tight leading-tight group-hover:text-white transition-colors duration-300">
-                                    {exercise.name}
-                                </h5>
+                            <div className="pt-1 md:pt-2 flex-1">
+                                <div className="flex justify-between items-start">
+                                    <h5 className="text-white text-xl md:text-2xl font-semibold tracking-tight leading-tight group-hover:text-white transition-colors duration-300 pr-4">
+                                        {exercise.name}
+                                    </h5>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={onEdit} className="text-white/30 hover:text-white cursor-pointer"><Icon name="edit2" className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                        <button onClick={onDelete} className="text-white/30 hover:text-iron-red-500 cursor-pointer"><Icon name="trash2" className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -449,7 +459,7 @@
             } catch(e) { console.log("Audio not supported"); }
         };
 
-        const EntertainmentHub = ({ mediaData, mediaTabs, activeTab, setActiveTab, onAdd, onDelete, onAddCategory }) => {
+        const EntertainmentHub = ({ mediaData, mediaTabs, activeTab, setActiveTab, onAdd, onDelete, onEdit, onAddCategory, onDeleteCategory }) => {
             const currentList = mediaData[activeTab] || [];
             const activeTabObj = mediaTabs.find(t => t.id === activeTab) || {};
 
@@ -469,17 +479,25 @@
                         {/* Navigation Tabs */}
                         <div className="flex flex-wrap gap-4 mb-12 border-b border-white/10 pb-6">
                             {mediaTabs.map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-mono text-xs uppercase tracking-widest transition-all duration-300 border cursor-pointer
-                                        ${activeTab === tab.id 
-                                            ? 'bg-iron-cyan-900/30 text-iron-cyan-400 border-iron-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
-                                            : 'bg-white/5 text-white/50 border-white/5 hover:border-white/20 hover:text-white'}
-                                    `}
-                                >
-                                    <Icon name={tab.icon} className="w-4 h-4" /> {tab.label}
-                                </button>
+                                <div key={tab.id} className="relative group">
+                                    <button
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-mono text-xs uppercase tracking-widest transition-all duration-300 border cursor-pointer
+                                            ${activeTab === tab.id 
+                                                ? 'bg-iron-cyan-900/30 text-iron-cyan-400 border-iron-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
+                                                : 'bg-white/5 text-white/50 border-white/5 hover:border-white/20 hover:text-white'}
+                                        `}
+                                    >
+                                        <Icon name={tab.icon} className="w-4 h-4" /> {tab.label}
+                                    </button>
+                                    <button 
+                                        onClick={() => onDeleteCategory(tab.id)}
+                                        className="absolute -top-2 -right-2 bg-black text-white/50 hover:text-iron-red-500 border border-white/10 hover:border-iron-red-500/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-10"
+                                        title="Delete Category"
+                                    >
+                                        <Icon name="x" className="w-3 h-3" />
+                                    </button>
+                                </div>
                             ))}
                             <button
                                 onClick={onAddCategory}
@@ -501,9 +519,14 @@
                                     <div key={item.id} className="bg-[#110505] p-6 rounded-3xl border border-white/10 hover:border-iron-cyan-500/50 transition-colors group relative overflow-hidden flex flex-col justify-between">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-iron-cyan-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2 group-hover:bg-iron-cyan-500/20 transition-colors duration-500" />
                                         
-                                        <button onClick={() => onDelete(activeTab, item.id)} className="absolute top-4 right-4 text-white/20 hover:text-iron-red-500 transition-colors z-10 cursor-pointer">
-                                            <Icon name="trash2" className="w-4 h-4" />
-                                        </button>
+                                        <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                            <button onClick={() => onEdit(activeTab, item)} className="p-2 bg-black/40 hover:bg-iron-cyan-900/50 text-white/50 hover:text-iron-cyan-400 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-iron-cyan-500/30">
+                                                <Icon name="edit2" className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => onDelete(activeTab, item.id)} className="p-2 bg-black/40 hover:bg-iron-red-900/50 text-white/50 hover:text-iron-red-400 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-iron-red-500/30">
+                                                <Icon name="trash2" className="w-4 h-4" />
+                                            </button>
+                                        </div>
 
                                         {(!activeTabObj.template || activeTabObj.template === 'media') && (
                                             <>
@@ -527,17 +550,17 @@
 
                                         {activeTabObj.template === 'websites' && (
                                             <>
-                                                <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">
+                                                <h3 className="text-xl font-bold text-white mb-2 pr-16 leading-tight relative z-10">
                                                     {item.url ? <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer" className="hover:text-iron-cyan-400 hover:underline cursor-pointer">{item.title}</a> : item.title}
                                                 </h3>
                                                 {item.creator && <div className="text-xs text-white/40 font-mono mb-4 relative z-10">By: {item.creator}</div>}
-                                                {item.description && <p className="text-sm text-white/60 relative z-10 mt-auto">{item.description}</p>}
+                                                {item.description && <div className="text-sm text-white/60 relative z-10 mt-auto quill-content" dangerouslySetInnerHTML={{ __html: item.description }}></div>}
                                             </>
                                         )}
 
                                         {activeTabObj.template === 'items' && (
                                             <>
-                                                <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">{item.title}</h3>
+                                                <h3 className="text-xl font-bold text-white mb-2 pr-16 leading-tight relative z-10">{item.title}</h3>
                                                 {item.type && (
                                                     <div className="mb-4 relative z-10 inline-block">
                                                         <span className="text-[10px] uppercase font-mono tracking-widest px-3 py-1 rounded-full border border-iron-cyan-500/30 text-iron-cyan-400 bg-iron-cyan-500/10">
@@ -545,7 +568,7 @@
                                                         </span>
                                                     </div>
                                                 )}
-                                                {item.notes && <p className="text-sm text-white/60 relative z-10 mt-auto bg-black/20 p-3 rounded-xl border border-white/5">{item.notes}</p>}
+                                                {item.notes && <div className="text-sm text-white/60 relative z-10 mt-auto bg-black/20 p-3 rounded-xl border border-white/5 quill-content" dangerouslySetInnerHTML={{ __html: item.notes }}></div>}
                                             </>
                                         )}
 
@@ -562,6 +585,47 @@
                         </button>
 
                     </div>
+                </div>
+            );
+        };
+
+        const RichTextEditor = ({ value, onChange, placeholder }) => {
+            const editorRef = useRef(null);
+            const quillRef = useRef(null);
+
+            useEffect(() => {
+                if (editorRef.current && !quillRef.current) {
+                    quillRef.current = new Quill(editorRef.current, {
+                        theme: 'snow',
+                        placeholder: placeholder || 'Enter text...',
+                        modules: {
+                            toolbar: [
+                                ['bold', 'italic', 'underline'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['clean']
+                            ]
+                        }
+                    });
+
+                    quillRef.current.on('text-change', () => {
+                        onChange(quillRef.current.root.innerHTML);
+                    });
+                }
+            }, []);
+
+            useEffect(() => {
+                if (quillRef.current && value !== quillRef.current.root.innerHTML) {
+                    if (!value) {
+                         quillRef.current.setText('');
+                    } else if (quillRef.current.root.innerHTML !== value) {
+                         quillRef.current.root.innerHTML = value;
+                    }
+                }
+            }, [value]);
+
+            return (
+                <div className="bg-[#110505] border border-iron-cyan-900/30 rounded-xl overflow-hidden [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-iron-cyan-900/30 [&_.ql-toolbar]:bg-black/40 [&_.ql-container]:border-none [&_.ql-editor]:text-white [&_.ql-editor]:font-sans [&_.ql-editor]:min-h-[120px] [&_button]:text-white [&_.ql-stroke]:stroke-white [&_.ql-fill]:fill-white">
+                    <div ref={editorRef} />
                 </div>
             );
         };
@@ -641,7 +705,9 @@
             
             // Form states
             const [newExercise, setNewExercise] = useState({ name: '', sets: '4', reps: '8-10', rest: '60s' });
+            const [editingExerciseIndex, setEditingExerciseIndex] = useState(null);
             const [newRoutine, setNewRoutine] = useState({ title: '', day: '', theme: 'from-iron-cyan-600/30 to-iron-cyan-900/10' });
+            const [editingMediaId, setEditingMediaId] = useState(null);
 
             // App Level State
             const [activeAppModule, setActiveAppModule] = useState('fitness');
@@ -832,19 +898,45 @@
                 saveToCloud('apex_protocol_ironman_weights', JSON.stringify(newWeights));
             };
 
-            // Add Exercise
+            // Add/Edit Exercise
             const handleAddExercise = () => {
                 if (!newExercise.name) return;
                 const updatedWorkouts = workouts.map(w => {
                     if (w.id === activeDay) {
-                        return { ...w, exercises: [...w.exercises, { ...newExercise }] };
+                        const updatedExercises = [...w.exercises];
+                        if (editingExerciseIndex !== null) {
+                            updatedExercises[editingExerciseIndex] = { ...newExercise };
+                        } else {
+                            updatedExercises.push({ ...newExercise });
+                        }
+                        return { ...w, exercises: updatedExercises };
                     }
                     return w;
                 });
                 setWorkouts(updatedWorkouts);
                 saveToCloud('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
                 setShowAddExercise(false);
+                setEditingExerciseIndex(null);
                 setNewExercise({ name: '', sets: '4', reps: '8-10', rest: '60s' });
+            };
+
+            const handleDeleteExercise = (dayId, index) => {
+                if (!confirm("Are you sure you want to delete this exercise?")) return;
+                const updatedWorkouts = workouts.map(w => {
+                    if (w.id === dayId) {
+                        return { ...w, exercises: w.exercises.filter((_, i) => i !== index) };
+                    }
+                    return w;
+                });
+                setWorkouts(updatedWorkouts);
+                saveToCloud('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
+            };
+
+            const handleEditExerciseClick = (dayId, index, exercise) => {
+                setActiveDay(dayId);
+                setNewExercise(exercise);
+                setEditingExerciseIndex(index);
+                setShowAddExercise(true);
             };
 
             // Add Routine
@@ -868,16 +960,32 @@
                 setActiveDay(newId);
             };
 
+            const handleEditMedia = (tabKey, item) => {
+                setActiveMediaTab(tabKey);
+                setNewMedia(item);
+                setEditingMediaId(item.id);
+                setShowAddMedia(true);
+            };
+
             const handleAddMedia = () => {
                 if (!newMedia.title) return;
                 const currentTabMedia = mediaData[activeMediaTab] || [];
+                let updatedTabMedia;
+
+                if (editingMediaId) {
+                    updatedTabMedia = currentTabMedia.map(item => item.id === editingMediaId ? { ...newMedia, id: editingMediaId } : item);
+                } else {
+                    updatedTabMedia = [...currentTabMedia, { ...newMedia, id: Date.now().toString() }];
+                }
+
                 const updatedMedia = {
                     ...mediaData,
-                    [activeMediaTab]: [...currentTabMedia, { ...newMedia, id: Date.now().toString() }]
+                    [activeMediaTab]: updatedTabMedia
                 };
                 setMediaData(updatedMedia);
                 saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
                 setShowAddMedia(false);
+                setEditingMediaId(null);
                 setNewMedia({ title: '', status: 'Plan to Watch', rating: '-', url: '', creator: '', description: '', type: '', notes: '' });
             };
 
@@ -916,6 +1024,23 @@
                 };
                 setMediaData(updatedMedia);
                 saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
+            };
+
+            const handleDeleteCategory = (tabId) => {
+                if (!confirm("Are you sure you want to delete this category and all its entries?")) return;
+                
+                const updatedTabs = mediaTabs.filter(t => t.id !== tabId);
+                setMediaTabs(updatedTabs);
+                saveToCloud('apex_protocol_media_tabs', JSON.stringify(updatedTabs));
+                
+                const updatedMediaData = { ...mediaData };
+                delete updatedMediaData[tabId];
+                setMediaData(updatedMediaData);
+                saveToCloud('apex_protocol_media', JSON.stringify(updatedMediaData));
+                
+                if (activeMediaTab === tabId) {
+                    setActiveMediaTab(updatedTabs.length > 0 ? updatedTabs[0].id : null);
+                }
             };
 
             if (!authLoaded) return <div className="min-h-screen bg-[#050101] flex items-center justify-center text-iron-red-500 font-mono text-xs uppercase tracking-widest animate-pulse">Initializing Protocol...</div>;
@@ -1087,12 +1212,18 @@
                                                     colorAccent={currentDayData.textAccent}
                                                     completedSets={completedSets[`${getTodayString()}_${currentDayData.id}_${exerciseIdx}`] || 0}
                                                     onSetComplete={() => handleSetComplete(currentDayData.id, exerciseIdx, parseInt(exercise.sets) || 1, exercise.rest)}
+                                                    onEdit={() => handleEditExerciseClick(currentDayData.id, exerciseIdx, exercise)}
+                                                    onDelete={() => handleDeleteExercise(currentDayData.id, exerciseIdx)}
                                                 />
                                             );
                                         })}
                                         
                                         <button 
-                                            onClick={() => setShowAddExercise(true)} 
+                                            onClick={() => {
+                                                setEditingExerciseIndex(null);
+                                                setNewExercise({ name: '', sets: '4', reps: '8-10', rest: '60s' });
+                                                setShowAddExercise(true);
+                                            }} 
                                             className="mt-6 w-full py-5 border border-dashed border-white/20 text-white/50 hover:text-white hover:border-white/50 hover:bg-white/5 rounded-[24px] md:rounded-[32px] transition-all flex items-center justify-center gap-3 font-mono text-sm uppercase tracking-widest cursor-pointer"
                                         >
                                             <Icon name="plus" className="w-5 h-5" /> Add Exercise
@@ -1131,22 +1262,30 @@
                     </footer>
                         </>
                     ) : (
-                        <EntertainmentHub 
-                            mediaData={mediaData} 
-                            mediaTabs={mediaTabs}
-                            activeTab={activeMediaTab} 
-                            setActiveTab={setActiveMediaTab}
-                            onAdd={() => setShowAddMedia(true)}
-                            onDelete={handleDeleteMedia}
-                            onAddCategory={() => setShowAddCategory(true)}
-                        />
+                        activeAppModule === 'entertainment' && (
+                            <EntertainmentHub 
+                                mediaData={mediaData} 
+                                mediaTabs={mediaTabs} 
+                                activeTab={activeMediaTab} 
+                                setActiveTab={setActiveMediaTab}
+                                onAdd={() => {
+                                    setEditingMediaId(null);
+                                    setNewMedia({ title: '', status: 'Plan to Watch', rating: '-', url: '', creator: '', description: '', type: '', notes: '' });
+                                    setShowAddMedia(true);
+                                }}
+                                onDelete={handleDeleteMedia}
+                                onEdit={handleEditMedia}
+                                onAddCategory={() => setShowAddCategory(true)}
+                                onDeleteCategory={handleDeleteCategory}
+                            />
+                        )
                     )}
                     {/* Add Exercise Modal */}
                     {showAddExercise && (
                         <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
                             <div className="bg-[#0a0202] border border-iron-red-900/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
                                 <button onClick={() => setShowAddExercise(false)} className="absolute top-4 right-4 text-white/50 hover:text-white"><Icon name="x" className="w-5 h-5" /></button>
-                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6">Add Exercise</h3>
+                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6">{editingExerciseIndex !== null ? 'Edit Exercise' : 'Add Exercise'}</h3>
                                 
                                 <div className="space-y-4">
                                     <div>
@@ -1167,8 +1306,8 @@
                                             <input type="text" value={newExercise.rest} onChange={e => setNewExercise({...newExercise, rest: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-center" />
                                         </div>
                                     </div>
-                                    <button onClick={handleAddExercise} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
-                                        Add to Routine
+                                    <button onClick={handleAddExercise} className="w-full mt-6 bg-iron-red-900/50 hover:bg-iron-red-600/50 border border-iron-red-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
+                                        {editingExerciseIndex !== null ? 'Save Exercise' : 'Add Exercise'}
                                     </button>
                                 </div>
                             </div>
@@ -1232,7 +1371,7 @@
                         <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
                             <div className="bg-[#0a0202] border border-iron-cyan-900/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
                                 <button onClick={() => setShowAddMedia(false)} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer"><Icon name="x" className="w-5 h-5" /></button>
-                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6 text-iron-cyan-400">Add to Archive</h3>
+                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6 text-iron-cyan-400">{editingMediaId ? 'Edit Entry' : 'Add to Archive'}</h3>
                                 
                                 <div className="space-y-4">
                                     {(!mediaTabs.find(t => t.id === activeMediaTab)?.template || mediaTabs.find(t => t.id === activeMediaTab)?.template === 'media') && (
@@ -1272,13 +1411,13 @@
                                                 <input type="text" value={newMedia.url} onChange={e => setNewMedia({...newMedia, url: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. https://github.com" />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <div className="col-span-2 md:col-span-1">
+                                                <div className="col-span-2">
                                                     <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Creator</label>
                                                     <input type="text" value={newMedia.creator} onChange={e => setNewMedia({...newMedia, creator: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Microsoft" />
                                                 </div>
-                                                <div className="col-span-2 md:col-span-1">
+                                                <div className="col-span-2">
                                                     <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Description</label>
-                                                    <input type="text" value={newMedia.description} onChange={e => setNewMedia({...newMedia, description: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="One-liner" />
+                                                    <RichTextEditor value={newMedia.description} onChange={val => setNewMedia({...newMedia, description: val})} placeholder="Enter description..." />
                                                 </div>
                                             </div>
                                         </>
@@ -1291,20 +1430,20 @@
                                                 <input type="text" value={newMedia.title} onChange={e => setNewMedia({...newMedia, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Ergonomic Keyboard" />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <div>
+                                                <div className="col-span-2">
                                                     <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Type / Tag</label>
                                                     <input type="text" value={newMedia.type} onChange={e => setNewMedia({...newMedia, type: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Hardware" />
                                                 </div>
-                                                <div>
+                                                <div className="col-span-2">
                                                     <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Notes</label>
-                                                    <input type="text" value={newMedia.notes} onChange={e => setNewMedia({...newMedia, notes: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Need to buy" />
+                                                    <RichTextEditor value={newMedia.notes} onChange={val => setNewMedia({...newMedia, notes: val})} placeholder="Enter notes..." />
                                                 </div>
                                             </div>
                                         </>
                                     )}
 
                                     <button onClick={handleAddMedia} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
-                                        Add Entry
+                                        {editingMediaId ? 'Save Entry' : 'Add Entry'}
                                     </button>
                                 </div>
                             </div>
