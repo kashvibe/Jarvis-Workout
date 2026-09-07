@@ -449,14 +449,7 @@
             } catch(e) { console.log("Audio not supported"); }
         };
 
-        const EntertainmentHub = ({ mediaData, activeTab, setActiveTab, onAdd, onDelete }) => {
-            const tabs = [
-                { id: 'englishMovies', label: 'English Movies', icon: 'film' },
-                { id: 'hindiMovies', label: 'Hindi Movies', icon: 'clapperboard' },
-                { id: 'animes', label: 'Anime', icon: 'tv' },
-                { id: 'books', label: 'Books', icon: 'bookOpen' }
-            ];
-
+        const EntertainmentHub = ({ mediaData, mediaTabs, activeTab, setActiveTab, onAdd, onDelete, onAddCategory }) => {
             const currentList = mediaData[activeTab] || [];
 
             return (
@@ -474,7 +467,7 @@
 
                         {/* Navigation Tabs */}
                         <div className="flex flex-wrap gap-4 mb-12 border-b border-white/10 pb-6">
-                            {tabs.map(tab => (
+                            {mediaTabs.map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
@@ -487,6 +480,12 @@
                                     <Icon name={tab.icon} className="w-4 h-4" /> {tab.label}
                                 </button>
                             ))}
+                            <button
+                                onClick={onAddCategory}
+                                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-mono text-xs uppercase tracking-widest transition-all duration-300 border border-dashed border-white/30 text-white/50 hover:text-white hover:border-white/60 hover:bg-white/5 cursor-pointer"
+                            >
+                                <Icon name="plus" className="w-4 h-4" /> Add Category
+                            </button>
                         </div>
 
                         {/* Content Grid */}
@@ -626,9 +625,18 @@
                 animes: [],
                 books: []
             });
+            const defaultMediaTabs = [
+                { id: 'englishMovies', label: 'English Movies', icon: 'film' },
+                { id: 'hindiMovies', label: 'Hindi Movies', icon: 'clapperboard' },
+                { id: 'animes', label: 'Anime', icon: 'tv' },
+                { id: 'books', label: 'Books', icon: 'bookOpen' }
+            ];
+            const [mediaTabs, setMediaTabs] = useState(defaultMediaTabs);
             const [activeMediaTab, setActiveMediaTab] = useState('englishMovies');
             const [showAddMedia, setShowAddMedia] = useState(false);
             const [newMedia, setNewMedia] = useState({ title: '', status: 'Plan to Watch', rating: '-' });
+            const [showAddCategory, setShowAddCategory] = useState(false);
+            const [newCategoryName, setNewCategoryName] = useState('');
 
             // Timer Effect
             useEffect(() => {
@@ -686,7 +694,8 @@
                         'apex_protocol_ironman_weights': 'weights',
                         'apex_protocol_ironman_sets': 'sets',
                         'apex_protocol_workouts': 'workouts',
-                        'apex_protocol_media': 'media'
+                        'apex_protocol_media': 'media',
+                        'apex_protocol_media_tabs': 'mediaTabs'
                     };
                     const fieldName = fieldMap[key];
                     if (fieldName) {
@@ -712,7 +721,8 @@
                         weights: localStorage.getItem('apex_protocol_ironman_weights') || "{}",
                         sets: localStorage.getItem('apex_protocol_ironman_sets') || "{}",
                         workouts: localStorage.getItem('apex_protocol_workouts') || "[]",
-                        media: localStorage.getItem('apex_protocol_media') || "{}"
+                        media: localStorage.getItem('apex_protocol_media') || "{}",
+                        mediaTabs: localStorage.getItem('apex_protocol_media_tabs') || null
                     };
                     await docRef.set(data, { merge: true });
                     alert("Success! Your phone data has been pushed to the cloud.");
@@ -727,7 +737,8 @@
                 weights: "{\"01_0\":\"45\",\"01_1\":\"17.5\",\"01_2\":\"23\",\"01_3\":\"12.5\",\"01_4\":\"30\",\"02_0\":\"60\",\"02_1\":\"54\",\"02_2\":\"50\",\"02_3\":\"50\",\"02_4\":\"34\",\"03_0\":\"40\",\"03_1\":\"64\",\"03_2\":\"9\",\"03_3\":\"27\",\"03_4\":\"20\",\"04_0\":\"15\",\"04_1\":\"8\",\"04_2\":\"29\",\"04_3\":\"72,36\",\"04_4\":\"15\",\"05_0\":\"25\",\"05_1\":\"35\",\"05_2\":\"15\",\"05_3\":\"36\",\"05_4\":\"0\"}",
                 sets: "{\"Thu Sep 03 2026_04_0\":4,\"Thu Sep 03 2026_04_1\":4,\"Thu Sep 03 2026_04_2\":4,\"Thu Sep 03 2026_04_3\":3}",
                 workouts: null,
-                media: null
+                media: null,
+                mediaTabs: null
             };
 
             // Listen for auth state
@@ -755,6 +766,7 @@
                             if (data.workouts) setWorkouts(JSON.parse(data.workouts));
                             else setWorkouts(workoutData);
                             if (data.media) setMediaData(JSON.parse(data.media));
+                            if (data.mediaTabs) setMediaTabs(JSON.parse(data.mediaTabs));
                             loadedFromCloud = true;
                         }
                     } catch (err) {
@@ -829,20 +841,41 @@
 
             const handleAddMedia = () => {
                 if (!newMedia.title) return;
+                const currentTabMedia = mediaData[activeMediaTab] || [];
                 const updatedMedia = {
                     ...mediaData,
-                    [activeMediaTab]: [...mediaData[activeMediaTab], { ...newMedia, id: Date.now().toString() }]
+                    [activeMediaTab]: [...currentTabMedia, { ...newMedia, id: Date.now().toString() }]
                 };
                 setMediaData(updatedMedia);
                 saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
                 setShowAddMedia(false);
                 setNewMedia({ title: '', status: 'Plan to Watch', rating: '-' });
             };
+
+            const handleAddCategory = () => {
+                if (!newCategoryName.trim()) return;
+                const id = newCategoryName.trim().replace(/\s+/g, '').toLowerCase();
+                if (mediaTabs.some(t => t.id === id)) return;
+                
+                const newTab = { id, label: newCategoryName.trim(), icon: 'folder' };
+                const updatedTabs = [...mediaTabs, newTab];
+                setMediaTabs(updatedTabs);
+                saveToCloud('apex_protocol_media_tabs', JSON.stringify(updatedTabs));
+                
+                const updatedMediaData = { ...mediaData, [id]: [] };
+                setMediaData(updatedMediaData);
+                saveToCloud('apex_protocol_media', JSON.stringify(updatedMediaData));
+                
+                setNewCategoryName('');
+                setShowAddCategory(false);
+                setActiveMediaTab(id);
+            };
             
             const handleDeleteMedia = (tabKey, id) => {
+                const currentTabMedia = mediaData[tabKey] || [];
                 const updatedMedia = {
                     ...mediaData,
-                    [tabKey]: mediaData[tabKey].filter(item => item.id !== id)
+                    [tabKey]: currentTabMedia.filter(item => item.id !== id)
                 };
                 setMediaData(updatedMedia);
                 saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
@@ -1110,10 +1143,12 @@
                     ) : (
                         <EntertainmentHub 
                             mediaData={mediaData} 
+                            mediaTabs={mediaTabs}
                             activeTab={activeMediaTab} 
                             setActiveTab={setActiveMediaTab}
                             onAdd={() => setShowAddMedia(true)}
                             onDelete={handleDeleteMedia}
+                            onAddCategory={() => setShowAddCategory(true)}
                         />
                     )}
                     {/* Add Exercise Modal */}
@@ -1168,6 +1203,26 @@
                                     </div>
                                     <button onClick={handleAddRoutine} className="w-full mt-4 bg-iron-gold-900/50 hover:bg-iron-gold-600/50 border border-iron-gold-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
                                         Create Routine
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Add Category Modal */}
+                    {showAddCategory && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                            <div className="bg-[#0a0202] border border-iron-cyan-900/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+                                <button onClick={() => setShowAddCategory(false)} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer"><Icon name="x" className="w-5 h-5" /></button>
+                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6 text-iron-cyan-400">Add Category</h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Category Name</label>
+                                        <input type="text" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Podcasts" />
+                                    </div>
+                                    <button onClick={handleAddCategory} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
+                                        Create Category
                                     </button>
                                 </div>
                             </div>
