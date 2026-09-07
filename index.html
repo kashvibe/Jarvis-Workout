@@ -15,6 +15,25 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMDQeeJKQf_XLF_fYwE8ne_w4O8tUEWIs",
+            authDomain: "jarvis-c7524.firebaseapp.com",
+            projectId: "jarvis-c7524",
+            storageBucket: "jarvis-c7524.firebasestorage.app",
+            messagingSenderId: "504555210978",
+            appId: "1:504555210978:web:793ea287532a49ca2c36bb",
+            measurementId: "G-KB4EJTX8E5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+    </script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -520,7 +539,68 @@
             );
         };
 
+        const AuthScreen = ({ onLogin }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [isRegistering, setIsRegistering] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                try {
+                    if (isRegistering) {
+                        await auth.createUserWithEmailAndPassword(email, password);
+                    } else {
+                        await auth.signInWithEmailAndPassword(email, password);
+                    }
+                } catch (err) {
+                    setError(err.message);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-[#050101] flex items-center justify-center p-6 relative overflow-hidden">
+                    <div className="fixed inset-0 noise-bg mix-blend-screen opacity-50"></div>
+                    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0"><div className="scanline"></div></div>
+                    <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] bg-iron-red-600/10 rounded-full blur-[100px] mix-blend-screen animate-pulse pointer-events-none"></div>
+                    
+                    <div className="relative z-10 w-full max-w-md bg-[#0a0202]/80 backdrop-blur-xl border border-iron-red-900/50 rounded-3xl p-8 md:p-10 shadow-[0_0_50px_rgba(220,38,38,0.1)]">
+                        <div className="text-center mb-10">
+                            <h1 className="text-4xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-iron-red-500 mb-2">Project Apex</h1>
+                            <p className="text-iron-red-500/60 font-mono text-xs uppercase tracking-widest">Secure Login Protocol</p>
+                        </div>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label className="text-xs text-white/50 font-mono uppercase tracking-widest mb-2 block">Email</label>
+                                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-[#110505] border border-iron-red-900/30 rounded-xl px-4 py-3 outline-none focus:border-iron-red-500 text-white font-mono text-sm transition-colors" />
+                            </div>
+                            <div>
+                                <label className="text-xs text-white/50 font-mono uppercase tracking-widest mb-2 block">Password</label>
+                                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-[#110505] border border-iron-red-900/30 rounded-xl px-4 py-3 outline-none focus:border-iron-red-500 text-white font-mono text-sm transition-colors" />
+                            </div>
+                            
+                            {error && <div className="text-iron-red-500 text-xs font-mono bg-iron-red-900/20 p-3 rounded-lg border border-iron-red-900/50">{error}</div>}
+                            
+                            <button type="submit" className="w-full py-4 bg-gradient-to-r from-iron-red-900 to-iron-red-700 hover:from-iron-red-800 hover:to-iron-red-600 text-white font-mono uppercase tracking-[0.2em] text-sm rounded-xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] cursor-pointer">
+                                {isRegistering ? 'Initialize Protocol' : 'Engage Protocol'}
+                            </button>
+                        </form>
+                        
+                        <div className="mt-8 text-center">
+                            <button onClick={() => setIsRegistering(!isRegistering)} className="text-white/40 hover:text-white text-xs font-mono uppercase tracking-widest transition-colors cursor-pointer">
+                                {isRegistering ? 'Switch to Engage Protocol' : 'Create New Protocol'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         function App() {
+            const [user, setUser] = useState(null);
+            const [authLoaded, setAuthLoaded] = useState(false);
             const [weights, setWeights] = useState({});
             const [isLoaded, setIsLoaded] = useState(false);
             const [activeDay, setActiveDay] = useState(workoutData[0].id);
@@ -581,7 +661,7 @@
                     const newCount = current + 1;
                     const newSets = { ...completedSets, [key]: newCount };
                     setCompletedSets(newSets);
-                    localStorage.setItem('apex_protocol_ironman_sets', JSON.stringify(newSets));
+                    saveToCloud('apex_protocol_ironman_sets', JSON.stringify(newSets));
                     
                     if (newCount === numSets) {
                         startTimer(60);
@@ -592,53 +672,114 @@
                 }
             };
 
+            const saveToCloud = async (key, value) => {
+                if (!user) return;
+                if (value === null) {
+                    localStorage.removeItem(key);
+                } else {
+                    localStorage.setItem(key, value); // Keep local backup
+                }
+                
+                try {
+                    const docRef = db.collection('users').doc(user.uid);
+                    const fieldMap = {
+                        'apex_protocol_ironman_weights': 'weights',
+                        'apex_protocol_ironman_sets': 'sets',
+                        'apex_protocol_workouts': 'workouts',
+                        'apex_protocol_media': 'media'
+                    };
+                    const fieldName = fieldMap[key];
+                    if (fieldName) {
+                        await docRef.set({ [fieldName]: value }, { merge: true });
+                    }
+                } catch (err) {
+                    console.error("Cloud save failed", err);
+                }
+            };
+
             const resetProgress = () => {
                 if (window.confirm("Reset all set progress for today? (Your saved weights will be kept)")) {
                     setCompletedSets({});
-                    localStorage.removeItem('apex_protocol_ironman_sets');
+                    saveToCloud('apex_protocol_ironman_sets', null);
                 }
             };
 
-            const handleExportData = async () => {
-                const data = {
-                    weights: localStorage.getItem('apex_protocol_ironman_weights'),
-                    sets: localStorage.getItem('apex_protocol_ironman_sets'),
-                    workouts: localStorage.getItem('apex_protocol_workouts'),
-                    media: localStorage.getItem('apex_protocol_media')
-                };
+            const handlePushToCloud = async () => {
+                if (!user) return;
                 try {
-                    await navigator.clipboard.writeText(JSON.stringify(data));
-                    alert("Data copied to clipboard! Please paste this in the chat.");
+                    const docRef = db.collection('users').doc(user.uid);
+                    const data = {
+                        weights: localStorage.getItem('apex_protocol_ironman_weights') || "{}",
+                        sets: localStorage.getItem('apex_protocol_ironman_sets') || "{}",
+                        workouts: localStorage.getItem('apex_protocol_workouts') || "[]",
+                        media: localStorage.getItem('apex_protocol_media') || "{}"
+                    };
+                    await docRef.set(data, { merge: true });
+                    alert("Success! Your phone data has been pushed to the cloud.");
                 } catch (err) {
-                    prompt("Failed to copy automatically. Please copy your data from here:", JSON.stringify(data));
+                    alert("Failed to push to cloud. Check console for details.");
+                    console.error(err);
                 }
             };
 
-            // Load from local storage on mount
+            // Phone Migration Payload
+            const MIGRATION_PAYLOAD = {
+                weights: "{\"01_0\":\"45\",\"01_1\":\"17.5\",\"01_2\":\"23\",\"01_3\":\"12.5\",\"01_4\":\"30\",\"02_0\":\"60\",\"02_1\":\"54\",\"02_2\":\"50\",\"02_3\":\"50\",\"02_4\":\"34\",\"03_0\":\"40\",\"03_1\":\"64\",\"03_2\":\"9\",\"03_3\":\"27\",\"03_4\":\"20\",\"04_0\":\"15\",\"04_1\":\"8\",\"04_2\":\"29\",\"04_3\":\"72,36\",\"04_4\":\"15\",\"05_0\":\"25\",\"05_1\":\"35\",\"05_2\":\"15\",\"05_3\":\"36\",\"05_4\":\"0\"}",
+                sets: "{\"Thu Sep 03 2026_04_0\":4,\"Thu Sep 03 2026_04_1\":4,\"Thu Sep 03 2026_04_2\":4,\"Thu Sep 03 2026_04_3\":3}",
+                workouts: null,
+                media: null
+            };
+
+            // Listen for auth state
             useEffect(() => {
-                const savedWeights = localStorage.getItem('apex_protocol_ironman_weights');
-                if (savedWeights) {
-                    try { setWeights(JSON.parse(savedWeights)); } catch (e) { console.error(e); }
-                }
-                const savedSets = localStorage.getItem('apex_protocol_ironman_sets');
-                if (savedSets) {
-                    try { setCompletedSets(JSON.parse(savedSets)); } catch (e) { console.error(e); }
-                }
-                const savedWorkouts = localStorage.getItem('apex_protocol_workouts');
-                if (savedWorkouts) {
-                    try { setWorkouts(JSON.parse(savedWorkouts)); } catch (e) { setWorkouts(workoutData); }
-                } else {
-                    setWorkouts(workoutData);
-                }
-
-                // Load Entertainment Data
-                const savedMedia = localStorage.getItem('apex_protocol_media');
-                if (savedMedia) {
-                    try { setMediaData(JSON.parse(savedMedia)); } catch (e) { console.error(e); }
-                }
-
-                setIsLoaded(true);
+                const unsubscribe = auth.onAuthStateChanged(u => {
+                    setUser(u);
+                    setAuthLoaded(true);
+                });
+                return unsubscribe;
             }, []);
+
+            // Load from Firebase on auth, fallback to migration payload
+            useEffect(() => {
+                if (!user) return;
+                
+                const loadData = async () => {
+                    let loadedFromCloud = false;
+                    try {
+                        const docRef = db.collection('users').doc(user.uid);
+                        const docSnap = await docRef.get();
+                        if (docSnap.exists) {
+                            const data = docSnap.data();
+                            if (data.weights) setWeights(JSON.parse(data.weights));
+                            if (data.sets) setCompletedSets(JSON.parse(data.sets));
+                            if (data.workouts) setWorkouts(JSON.parse(data.workouts));
+                            else setWorkouts(workoutData);
+                            if (data.media) setMediaData(JSON.parse(data.media));
+                            loadedFromCloud = true;
+                        }
+                    } catch (err) {
+                        console.error("Firebase load failed", err);
+                    }
+
+                    if (!loadedFromCloud) {
+                        // Use migration payload since this is the first login
+                        try {
+                            if (MIGRATION_PAYLOAD.weights) setWeights(JSON.parse(MIGRATION_PAYLOAD.weights));
+                            if (MIGRATION_PAYLOAD.sets) setCompletedSets(JSON.parse(MIGRATION_PAYLOAD.sets));
+                            setWorkouts(workoutData);
+                            
+                            // Save this payload up to the cloud automatically!
+                            await db.collection('users').doc(user.uid).set(MIGRATION_PAYLOAD, { merge: true });
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    
+                    setIsLoaded(true);
+                };
+                
+                loadData();
+            }, [user]);
 
             // Save specific weight
             const handleSaveWeight = (dayId, exerciseIndex, weightValue) => {
@@ -647,7 +788,7 @@
                     [`${dayId}_${exerciseIndex}`]: weightValue
                 };
                 setWeights(newWeights);
-                localStorage.setItem('apex_protocol_ironman_weights', JSON.stringify(newWeights));
+                saveToCloud('apex_protocol_ironman_weights', JSON.stringify(newWeights));
             };
 
             // Add Exercise
@@ -660,7 +801,7 @@
                     return w;
                 });
                 setWorkouts(updatedWorkouts);
-                localStorage.setItem('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
+                saveToCloud('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
                 setShowAddExercise(false);
                 setNewExercise({ name: '', sets: '4', reps: '8-10', rest: '60s' });
             };
@@ -680,7 +821,7 @@
                 };
                 const updatedWorkouts = [...workouts, newWorkoutDay];
                 setWorkouts(updatedWorkouts);
-                localStorage.setItem('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
+                saveToCloud('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
                 setShowAddRoutine(false);
                 setNewRoutine({ title: '', day: '', theme: 'from-iron-cyan-600/30 to-iron-cyan-900/10' });
                 setActiveDay(newId);
@@ -693,7 +834,7 @@
                     [activeMediaTab]: [...mediaData[activeMediaTab], { ...newMedia, id: Date.now().toString() }]
                 };
                 setMediaData(updatedMedia);
-                localStorage.setItem('apex_protocol_media', JSON.stringify(updatedMedia));
+                saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
                 setShowAddMedia(false);
                 setNewMedia({ title: '', status: 'Plan to Watch', rating: '-' });
             };
@@ -704,9 +845,11 @@
                     [tabKey]: mediaData[tabKey].filter(item => item.id !== id)
                 };
                 setMediaData(updatedMedia);
-                localStorage.setItem('apex_protocol_media', JSON.stringify(updatedMedia));
+                saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
             };
 
+            if (!authLoaded) return <div className="min-h-screen bg-[#050101] flex items-center justify-center text-iron-red-500 font-mono text-xs uppercase tracking-widest animate-pulse">Initializing Protocol...</div>;
+            if (!user) return <AuthScreen />;
             if (!isLoaded) return null;
 
             const currentDayData = workouts.find(d => d.id === activeDay) || workouts[0];
@@ -955,10 +1098,10 @@
                                     <Icon name="rotateCcw" className="w-4 h-4" /> Reset Set Progress
                                 </button>
                                 <button 
-                                    onClick={handleExportData}
+                                    onClick={handlePushToCloud}
                                     className="mt-4 px-6 py-3 rounded-full border border-iron-cyan-900/50 hover:bg-iron-cyan-900/30 text-iron-cyan-400 hover:text-iron-cyan-300 text-xs font-mono uppercase tracking-widest transition-colors duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.05)] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] cursor-pointer"
                                 >
-                                    <Icon name="download" className="w-4 h-4" /> Export Local Data
+                                    <Icon name="uploadCloud" className="w-4 h-4" /> Push Phone Data to Cloud
                                 </button>
                             </div>
                         </ScrollReveal>
