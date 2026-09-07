@@ -451,6 +451,7 @@
 
         const EntertainmentHub = ({ mediaData, mediaTabs, activeTab, setActiveTab, onAdd, onDelete, onAddCategory }) => {
             const currentList = mediaData[activeTab] || [];
+            const activeTabObj = mediaTabs.find(t => t.id === activeTab) || {};
 
             return (
                 <div className="relative z-10 pt-32 pb-40 min-h-screen">
@@ -497,30 +498,57 @@
                                 </div>
                             ) : (
                                 currentList.map(item => (
-                                    <div key={item.id} className="bg-[#110505] p-6 rounded-3xl border border-white/10 hover:border-iron-cyan-500/50 transition-colors group relative overflow-hidden">
+                                    <div key={item.id} className="bg-[#110505] p-6 rounded-3xl border border-white/10 hover:border-iron-cyan-500/50 transition-colors group relative overflow-hidden flex flex-col justify-between">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-iron-cyan-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2 group-hover:bg-iron-cyan-500/20 transition-colors duration-500" />
                                         
                                         <button onClick={() => onDelete(activeTab, item.id)} className="absolute top-4 right-4 text-white/20 hover:text-iron-red-500 transition-colors z-10 cursor-pointer">
                                             <Icon name="trash2" className="w-4 h-4" />
                                         </button>
 
-                                        <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">{item.title}</h3>
-                                        
-                                        <div className="flex items-center gap-4 mt-6 relative z-10">
-                                            <span className={`text-[10px] uppercase font-mono tracking-widest px-3 py-1 rounded-full border
-                                                ${item.status === 'Completed' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : 
-                                                  item.status === 'In Progress' ? 'border-iron-gold-500/30 text-iron-gold-400 bg-iron-gold-500/10' : 
-                                                  'border-white/20 text-white/60 bg-white/5'}
-                                            `}>
-                                                {item.status}
-                                            </span>
-                                            
-                                            {item.rating && item.rating !== '-' && (
-                                                <div className="flex items-center gap-1 text-iron-gold-400 text-xs font-mono">
-                                                    <Icon name="star" className="w-3 h-3 fill-current" /> {item.rating}/10
+                                        {(!activeTabObj.template || activeTabObj.template === 'media') && (
+                                            <>
+                                                <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">{item.title}</h3>
+                                                <div className="flex items-center gap-4 mt-6 relative z-10">
+                                                    <span className={`text-[10px] uppercase font-mono tracking-widest px-3 py-1 rounded-full border
+                                                        ${item.status === 'Completed' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : 
+                                                          item.status === 'In Progress' ? 'border-iron-gold-500/30 text-iron-gold-400 bg-iron-gold-500/10' : 
+                                                          'border-white/20 text-white/60 bg-white/5'}
+                                                    `}>
+                                                        {item.status || 'N/A'}
+                                                    </span>
+                                                    {item.rating && item.rating !== '-' && (
+                                                        <div className="flex items-center gap-1 text-iron-gold-400 text-xs font-mono">
+                                                            <Icon name="star" className="w-3 h-3 fill-current" /> {item.rating}/10
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
+                                            </>
+                                        )}
+
+                                        {activeTabObj.template === 'websites' && (
+                                            <>
+                                                <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">
+                                                    {item.url ? <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer" className="hover:text-iron-cyan-400 hover:underline cursor-pointer">{item.title}</a> : item.title}
+                                                </h3>
+                                                {item.creator && <div className="text-xs text-white/40 font-mono mb-4 relative z-10">By: {item.creator}</div>}
+                                                {item.description && <p className="text-sm text-white/60 relative z-10 mt-auto">{item.description}</p>}
+                                            </>
+                                        )}
+
+                                        {activeTabObj.template === 'items' && (
+                                            <>
+                                                <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">{item.title}</h3>
+                                                {item.type && (
+                                                    <div className="mb-4 relative z-10 inline-block">
+                                                        <span className="text-[10px] uppercase font-mono tracking-widest px-3 py-1 rounded-full border border-iron-cyan-500/30 text-iron-cyan-400 bg-iron-cyan-500/10">
+                                                            {item.type}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {item.notes && <p className="text-sm text-white/60 relative z-10 mt-auto bg-black/20 p-3 rounded-xl border border-white/5">{item.notes}</p>}
+                                            </>
+                                        )}
+
                                     </div>
                                 ))
                             )}
@@ -626,17 +654,18 @@
                 books: []
             });
             const defaultMediaTabs = [
-                { id: 'englishMovies', label: 'English Movies', icon: 'film' },
-                { id: 'hindiMovies', label: 'Hindi Movies', icon: 'clapperboard' },
-                { id: 'animes', label: 'Anime', icon: 'tv' },
-                { id: 'books', label: 'Books', icon: 'bookOpen' }
+                { id: 'englishMovies', label: 'English Movies', icon: 'film', template: 'media' },
+                { id: 'hindiMovies', label: 'Hindi Movies', icon: 'clapperboard', template: 'media' },
+                { id: 'animes', label: 'Anime', icon: 'tv', template: 'media' },
+                { id: 'books', label: 'Books', icon: 'bookOpen', template: 'media' }
             ];
             const [mediaTabs, setMediaTabs] = useState(defaultMediaTabs);
             const [activeMediaTab, setActiveMediaTab] = useState('englishMovies');
             const [showAddMedia, setShowAddMedia] = useState(false);
-            const [newMedia, setNewMedia] = useState({ title: '', status: 'Plan to Watch', rating: '-' });
+            const [newMedia, setNewMedia] = useState({ title: '', status: 'Plan to Watch', rating: '-', url: '', creator: '', description: '', type: '', notes: '' });
             const [showAddCategory, setShowAddCategory] = useState(false);
             const [newCategoryName, setNewCategoryName] = useState('');
+            const [newCategoryTemplate, setNewCategoryTemplate] = useState('media');
 
             // Timer Effect
             useEffect(() => {
@@ -849,7 +878,7 @@
                 setMediaData(updatedMedia);
                 saveToCloud('apex_protocol_media', JSON.stringify(updatedMedia));
                 setShowAddMedia(false);
-                setNewMedia({ title: '', status: 'Plan to Watch', rating: '-' });
+                setNewMedia({ title: '', status: 'Plan to Watch', rating: '-', url: '', creator: '', description: '', type: '', notes: '' });
             };
 
             const handleAddCategory = () => {
@@ -857,7 +886,7 @@
                 const id = newCategoryName.trim().replace(/\s+/g, '').toLowerCase();
                 if (mediaTabs.some(t => t.id === id)) return;
                 
-                const newTab = { id, label: newCategoryName.trim(), icon: 'folder' };
+                const newTab = { id, label: newCategoryName.trim(), icon: 'folder', template: newCategoryTemplate };
                 const updatedTabs = [...mediaTabs, newTab];
                 setMediaTabs(updatedTabs);
                 saveToCloud('apex_protocol_media_tabs', JSON.stringify(updatedTabs));
@@ -867,6 +896,7 @@
                 saveToCloud('apex_protocol_media', JSON.stringify(updatedMediaData));
                 
                 setNewCategoryName('');
+                setNewCategoryTemplate('media');
                 setShowAddCategory(false);
                 setActiveMediaTab(id);
             };
@@ -1221,6 +1251,14 @@
                                         <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Category Name</label>
                                         <input type="text" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Podcasts" />
                                     </div>
+                                    <div>
+                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Template</label>
+                                        <select value={newCategoryTemplate} onChange={e => setNewCategoryTemplate(e.target.value)} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
+                                            <option value="media">Media & Entertainment</option>
+                                            <option value="websites">Websites & Links</option>
+                                            <option value="items">Items & Accessories</option>
+                                        </select>
+                                    </div>
                                     <button onClick={handleAddCategory} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
                                         Create Category
                                     </button>
@@ -1237,27 +1275,74 @@
                                 <h3 className="text-xl font-bold uppercase tracking-wider mb-6 text-iron-cyan-400">Add to Archive</h3>
                                 
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Title</label>
-                                        <input type="text" value={newMedia.title} onChange={e => setNewMedia({...newMedia, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Interstellar" />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Status</label>
-                                            <select value={newMedia.status} onChange={e => setNewMedia({...newMedia, status: e.target.value})} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
-                                                <option value="Plan to Watch">Plan to Watch</option>
-                                                <option value="In Progress">In Progress</option>
-                                                <option value="Completed">Completed</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Rating</label>
-                                            <select value={newMedia.rating} onChange={e => setNewMedia({...newMedia, rating: e.target.value})} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
-                                                <option value="-">-</option>
-                                                {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}/10</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
+                                    {(!mediaTabs.find(t => t.id === activeMediaTab)?.template || mediaTabs.find(t => t.id === activeMediaTab)?.template === 'media') && (
+                                        <>
+                                            <div>
+                                                <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Title</label>
+                                                <input type="text" value={newMedia.title} onChange={e => setNewMedia({...newMedia, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Interstellar" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Status</label>
+                                                    <select value={newMedia.status} onChange={e => setNewMedia({...newMedia, status: e.target.value})} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
+                                                        <option value="Plan to Watch">Plan to Watch</option>
+                                                        <option value="In Progress">In Progress</option>
+                                                        <option value="Completed">Completed</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Rating</label>
+                                                    <select value={newMedia.rating} onChange={e => setNewMedia({...newMedia, rating: e.target.value})} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
+                                                        <option value="-">-</option>
+                                                        {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}/10</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {mediaTabs.find(t => t.id === activeMediaTab)?.template === 'websites' && (
+                                        <>
+                                            <div>
+                                                <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Website Name</label>
+                                                <input type="text" value={newMedia.title} onChange={e => setNewMedia({...newMedia, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. GitHub" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-white/50 font-mono uppercase mb-1 block">URL</label>
+                                                <input type="text" value={newMedia.url} onChange={e => setNewMedia({...newMedia, url: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. https://github.com" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="col-span-2 md:col-span-1">
+                                                    <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Creator</label>
+                                                    <input type="text" value={newMedia.creator} onChange={e => setNewMedia({...newMedia, creator: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Microsoft" />
+                                                </div>
+                                                <div className="col-span-2 md:col-span-1">
+                                                    <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Description</label>
+                                                    <input type="text" value={newMedia.description} onChange={e => setNewMedia({...newMedia, description: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="One-liner" />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {mediaTabs.find(t => t.id === activeMediaTab)?.template === 'items' && (
+                                        <>
+                                            <div>
+                                                <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Item Name</label>
+                                                <input type="text" value={newMedia.title} onChange={e => setNewMedia({...newMedia, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Ergonomic Keyboard" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Type / Tag</label>
+                                                    <input type="text" value={newMedia.type} onChange={e => setNewMedia({...newMedia, type: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Hardware" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Notes</label>
+                                                    <input type="text" value={newMedia.notes} onChange={e => setNewMedia({...newMedia, notes: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Need to buy" />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
                                     <button onClick={handleAddMedia} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
                                         Add Entry
                                     </button>
