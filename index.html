@@ -397,14 +397,14 @@
                                         <button
                                             key={i}
                                             onClick={isNext ? onSetComplete : undefined}
-                                            className={`w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-full border flex items-center justify-center transition-all duration-300
-                                                ${isCompleted ? 'bg-white text-black border-white' : 
-                                                  isNext ? 'border-white/50 hover:border-white hover:bg-white/10 text-white cursor-pointer' : 
+                                            className={`w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-full border flex items-center justify-center transition-all duration-300 text-lg md:text-xl font-bold
+                                                ${isCompleted ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 
+                                                  isNext ? 'border-white hover:border-white hover:bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer' : 
                                                   'border-white/10 text-white/20 cursor-not-allowed'}
                                             `}
                                             disabled={!isNext}
                                         >
-                                            {isCompleted ? <Icon name="check" className="w-4 h-4 md:w-5 md:h-5" /> : (i + 1)}
+                                            {isCompleted ? <Icon name="check" className="w-6 h-6 md:w-8 md:h-8" /> : (i + 1)}
                                         </button>
                                     );
                                 })}
@@ -430,6 +430,96 @@
             } catch(e) { console.log("Audio not supported"); }
         };
 
+        const EntertainmentHub = ({ mediaData, activeTab, setActiveTab, onAdd, onDelete }) => {
+            const tabs = [
+                { id: 'englishMovies', label: 'English Movies', icon: 'film' },
+                { id: 'hindiMovies', label: 'Hindi Movies', icon: 'clapperboard' },
+                { id: 'animes', label: 'Anime', icon: 'tv' },
+                { id: 'books', label: 'Books', icon: 'bookOpen' }
+            ];
+
+            const currentList = mediaData[activeTab] || [];
+
+            return (
+                <div className="relative z-10 pt-32 pb-40 min-h-screen">
+                    <div className="max-w-[1400px] mx-auto px-6 md:px-12 lg:px-24">
+                        <ScrollReveal>
+                            <h2 className="text-iron-cyan-400 font-mono text-xs md:text-sm uppercase tracking-[0.4em] mb-4 flex items-center gap-6">
+                                <span className="w-12 md:w-24 h-[1px] bg-iron-cyan-400/50 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
+                                Digital Archives
+                            </h2>
+                            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white mb-12">
+                                Entertainment <span className="text-transparent bg-clip-text bg-gradient-to-r from-iron-cyan-400 to-blue-600">Hub</span>
+                            </h1>
+                        </ScrollReveal>
+
+                        {/* Navigation Tabs */}
+                        <div className="flex flex-wrap gap-4 mb-12 border-b border-white/10 pb-6">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-mono text-xs uppercase tracking-widest transition-all duration-300 border cursor-pointer
+                                        ${activeTab === tab.id 
+                                            ? 'bg-iron-cyan-900/30 text-iron-cyan-400 border-iron-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
+                                            : 'bg-white/5 text-white/50 border-white/5 hover:border-white/20 hover:text-white'}
+                                    `}
+                                >
+                                    <Icon name={tab.icon} className="w-4 h-4" /> {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Content Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {currentList.length === 0 ? (
+                                <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
+                                    <Icon name="inbox" className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                                    <p className="text-white/40 font-mono uppercase tracking-widest text-sm">No entries found in this archive.</p>
+                                </div>
+                            ) : (
+                                currentList.map(item => (
+                                    <div key={item.id} className="bg-[#110505] p-6 rounded-3xl border border-white/10 hover:border-iron-cyan-500/50 transition-colors group relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-iron-cyan-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2 group-hover:bg-iron-cyan-500/20 transition-colors duration-500" />
+                                        
+                                        <button onClick={() => onDelete(activeTab, item.id)} className="absolute top-4 right-4 text-white/20 hover:text-iron-red-500 transition-colors z-10 cursor-pointer">
+                                            <Icon name="trash2" className="w-4 h-4" />
+                                        </button>
+
+                                        <h3 className="text-xl font-bold text-white mb-2 pr-8 leading-tight relative z-10">{item.title}</h3>
+                                        
+                                        <div className="flex items-center gap-4 mt-6 relative z-10">
+                                            <span className={`text-[10px] uppercase font-mono tracking-widest px-3 py-1 rounded-full border
+                                                ${item.status === 'Completed' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : 
+                                                  item.status === 'In Progress' ? 'border-iron-gold-500/30 text-iron-gold-400 bg-iron-gold-500/10' : 
+                                                  'border-white/20 text-white/60 bg-white/5'}
+                                            `}>
+                                                {item.status}
+                                            </span>
+                                            
+                                            {item.rating && item.rating !== '-' && (
+                                                <div className="flex items-center gap-1 text-iron-gold-400 text-xs font-mono">
+                                                    <Icon name="star" className="w-3 h-3 fill-current" /> {item.rating}/10
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <button 
+                            onClick={onAdd}
+                            className="mt-12 w-full py-5 border border-dashed border-iron-cyan-500/30 text-iron-cyan-400/70 hover:text-iron-cyan-400 hover:border-iron-cyan-400 hover:bg-iron-cyan-900/20 rounded-[24px] transition-all flex items-center justify-center gap-3 font-mono text-sm uppercase tracking-widest cursor-pointer"
+                        >
+                            <Icon name="plus" className="w-5 h-5" /> Add New Entry
+                        </button>
+
+                    </div>
+                </div>
+            );
+        };
+
         function App() {
             const [weights, setWeights] = useState({});
             const [isLoaded, setIsLoaded] = useState(false);
@@ -437,6 +527,28 @@
             const [completedSets, setCompletedSets] = useState({});
             const [activeTimer, setActiveTimer] = useState(null);
             const [timeLeft, setTimeLeft] = useState(0);
+            
+            const [workouts, setWorkouts] = useState([]);
+            const [showAddExercise, setShowAddExercise] = useState(false);
+            const [showAddRoutine, setShowAddRoutine] = useState(false);
+            
+            // Form states
+            const [newExercise, setNewExercise] = useState({ name: '', sets: '4', reps: '8-10', rest: '60s' });
+            const [newRoutine, setNewRoutine] = useState({ title: '', day: '', theme: 'from-iron-cyan-600/30 to-iron-cyan-900/10' });
+
+            // App Level State
+            const [activeAppModule, setActiveAppModule] = useState('fitness');
+            
+            // Entertainment State
+            const [mediaData, setMediaData] = useState({
+                englishMovies: [],
+                hindiMovies: [],
+                animes: [],
+                books: []
+            });
+            const [activeMediaTab, setActiveMediaTab] = useState('englishMovies');
+            const [showAddMedia, setShowAddMedia] = useState(false);
+            const [newMedia, setNewMedia] = useState({ title: '', status: 'Plan to Watch', rating: '-' });
 
             // Timer Effect
             useEffect(() => {
@@ -487,6 +599,21 @@
                 }
             };
 
+            const handleExportData = async () => {
+                const data = {
+                    weights: localStorage.getItem('apex_protocol_ironman_weights'),
+                    sets: localStorage.getItem('apex_protocol_ironman_sets'),
+                    workouts: localStorage.getItem('apex_protocol_workouts'),
+                    media: localStorage.getItem('apex_protocol_media')
+                };
+                try {
+                    await navigator.clipboard.writeText(JSON.stringify(data));
+                    alert("Data copied to clipboard! Please paste this in the chat.");
+                } catch (err) {
+                    prompt("Failed to copy automatically. Please copy your data from here:", JSON.stringify(data));
+                }
+            };
+
             // Load from local storage on mount
             useEffect(() => {
                 const savedWeights = localStorage.getItem('apex_protocol_ironman_weights');
@@ -497,6 +624,19 @@
                 if (savedSets) {
                     try { setCompletedSets(JSON.parse(savedSets)); } catch (e) { console.error(e); }
                 }
+                const savedWorkouts = localStorage.getItem('apex_protocol_workouts');
+                if (savedWorkouts) {
+                    try { setWorkouts(JSON.parse(savedWorkouts)); } catch (e) { setWorkouts(workoutData); }
+                } else {
+                    setWorkouts(workoutData);
+                }
+
+                // Load Entertainment Data
+                const savedMedia = localStorage.getItem('apex_protocol_media');
+                if (savedMedia) {
+                    try { setMediaData(JSON.parse(savedMedia)); } catch (e) { console.error(e); }
+                }
+
                 setIsLoaded(true);
             }, []);
 
@@ -510,13 +650,88 @@
                 localStorage.setItem('apex_protocol_ironman_weights', JSON.stringify(newWeights));
             };
 
+            // Add Exercise
+            const handleAddExercise = () => {
+                if (!newExercise.name) return;
+                const updatedWorkouts = workouts.map(w => {
+                    if (w.id === activeDay) {
+                        return { ...w, exercises: [...w.exercises, { ...newExercise }] };
+                    }
+                    return w;
+                });
+                setWorkouts(updatedWorkouts);
+                localStorage.setItem('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
+                setShowAddExercise(false);
+                setNewExercise({ name: '', sets: '4', reps: '8-10', rest: '60s' });
+            };
+
+            // Add Routine
+            const handleAddRoutine = () => {
+                if (!newRoutine.title || !newRoutine.day) return;
+                const newId = Date.now().toString();
+                const newWorkoutDay = {
+                    id: newId,
+                    day: newRoutine.day,
+                    title: newRoutine.title,
+                    theme: newRoutine.theme,
+                    textAccent: 'text-white',
+                    borderAccent: 'border-white/30',
+                    exercises: []
+                };
+                const updatedWorkouts = [...workouts, newWorkoutDay];
+                setWorkouts(updatedWorkouts);
+                localStorage.setItem('apex_protocol_workouts', JSON.stringify(updatedWorkouts));
+                setShowAddRoutine(false);
+                setNewRoutine({ title: '', day: '', theme: 'from-iron-cyan-600/30 to-iron-cyan-900/10' });
+                setActiveDay(newId);
+            };
+
+            const handleAddMedia = () => {
+                if (!newMedia.title) return;
+                const updatedMedia = {
+                    ...mediaData,
+                    [activeMediaTab]: [...mediaData[activeMediaTab], { ...newMedia, id: Date.now().toString() }]
+                };
+                setMediaData(updatedMedia);
+                localStorage.setItem('apex_protocol_media', JSON.stringify(updatedMedia));
+                setShowAddMedia(false);
+                setNewMedia({ title: '', status: 'Plan to Watch', rating: '-' });
+            };
+            
+            const handleDeleteMedia = (tabKey, id) => {
+                const updatedMedia = {
+                    ...mediaData,
+                    [tabKey]: mediaData[tabKey].filter(item => item.id !== id)
+                };
+                setMediaData(updatedMedia);
+                localStorage.setItem('apex_protocol_media', JSON.stringify(updatedMedia));
+            };
+
             if (!isLoaded) return null;
 
-            const currentDayData = workoutData.find(d => d.id === activeDay);
+            const currentDayData = workouts.find(d => d.id === activeDay) || workouts[0];
 
             return (
                 <div className="bg-[#050101] min-h-screen text-slate-200 font-sans selection:bg-iron-red-500/30 selection:text-iron-gold-200 overflow-x-hidden relative">
                     
+                    {/* App Module Switcher */}
+                    <div className="fixed top-0 w-full z-[100] flex justify-center p-4 pointer-events-none">
+                        <div className="backdrop-blur-xl bg-[#050101]/80 border border-white/10 p-1 rounded-full flex gap-1 pointer-events-auto shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+                            <button 
+                                onClick={() => setActiveAppModule('fitness')}
+                                className={`px-6 py-2 rounded-full font-mono text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer ${activeAppModule === 'fitness' ? 'bg-iron-red-600/20 text-iron-red-400 border border-iron-red-500/30' : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'}`}
+                            >
+                                Fitness
+                            </button>
+                            <button 
+                                onClick={() => setActiveAppModule('entertainment')}
+                                className={`px-6 py-2 rounded-full font-mono text-xs uppercase tracking-widest transition-all duration-300 cursor-pointer ${activeAppModule === 'entertainment' ? 'bg-iron-cyan-600/20 text-iron-cyan-400 border border-iron-cyan-500/30' : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'}`}
+                            >
+                                Entertainment
+                            </button>
+                        </div>
+                    </div>
+
                     {activeTimer && (
                         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] animate-fadeIn">
                             <div className="backdrop-blur-xl bg-[#050101]/90 border border-iron-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.2)] rounded-full px-6 py-3 flex items-center gap-6">
@@ -540,8 +755,10 @@
                     <div className="fixed inset-0 noise-bg mix-blend-screen"></div>
                     <div className="fixed inset-0 overflow-hidden pointer-events-none z-40"><div className="scanline"></div></div>
 
-                    {/* Header Section */}
-                    <section className="relative min-h-[70dvh] flex flex-col justify-center px-6 md:px-12 lg:px-24 z-10 pt-20 pb-10 overflow-hidden bg-[#050101]">
+                    {activeAppModule === 'fitness' ? (
+                        <>
+                            {/* Header Section */}
+                            <section className="relative min-h-[70dvh] flex flex-col justify-center px-6 md:px-12 lg:px-24 z-10 pt-20 pb-10 overflow-hidden bg-[#050101]">
                         {/* Dynamic Ambient Background Orbs - Iron Man Colors */}
                         <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-iron-red-900/20 to-transparent pointer-events-none" />
                         <div className="absolute top-1/3 left-1/4 w-[40vw] h-[40vw] bg-iron-red-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse pointer-events-none" style={{ animationDuration: '6s' }} />
@@ -626,7 +843,7 @@
                         <div className="sticky top-0 z-50 w-full backdrop-blur-xl bg-[#050101]/80 border-b border-iron-red-900/30 shadow-[0_10px_30px_rgba(0,0,0,0.8)] py-4 mb-12 md:mb-20">
                             <div className="max-w-[1400px] mx-auto px-2 sm:px-4 md:px-8 lg:px-16 xl:px-24">
                                 <div className="flex flex-wrap justify-center gap-2 md:gap-4 items-center">
-                                    {workoutData.map((day) => (
+                                    {workouts.map((day) => (
                                         <button
                                             key={day.id}
                                             onClick={() => setActiveDay(day.id)}
@@ -652,6 +869,12 @@
                                             </span>
                                         </button>
                                     ))}
+                                    <button
+                                        onClick={() => setShowAddRoutine(true)}
+                                        className="relative flex-grow sm:flex-grow-0 flex justify-center items-center px-3 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-[12px] md:rounded-[16px] font-mono text-[10px] sm:text-xs md:text-sm uppercase tracking-widest transition-all duration-300 border border-dashed border-white/30 text-white/50 hover:text-white hover:border-white/60 hover:bg-white/5"
+                                    >
+                                        <Icon name="plus" className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Custom Routine</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -701,6 +924,13 @@
                                                 />
                                             );
                                         })}
+                                        
+                                        <button 
+                                            onClick={() => setShowAddExercise(true)} 
+                                            className="mt-6 w-full py-5 border border-dashed border-white/20 text-white/50 hover:text-white hover:border-white/50 hover:bg-white/5 rounded-[24px] md:rounded-[32px] transition-all flex items-center justify-center gap-3 font-mono text-sm uppercase tracking-widest cursor-pointer"
+                                        >
+                                            <Icon name="plus" className="w-5 h-5" /> Add Exercise
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -724,9 +954,119 @@
                                 >
                                     <Icon name="rotateCcw" className="w-4 h-4" /> Reset Set Progress
                                 </button>
+                                <button 
+                                    onClick={handleExportData}
+                                    className="mt-4 px-6 py-3 rounded-full border border-iron-cyan-900/50 hover:bg-iron-cyan-900/30 text-iron-cyan-400 hover:text-iron-cyan-300 text-xs font-mono uppercase tracking-widest transition-colors duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.05)] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] cursor-pointer"
+                                >
+                                    <Icon name="download" className="w-4 h-4" /> Export Local Data
+                                </button>
                             </div>
                         </ScrollReveal>
                     </footer>
+                        </>
+                    ) : (
+                        <EntertainmentHub 
+                            mediaData={mediaData} 
+                            activeTab={activeMediaTab} 
+                            setActiveTab={setActiveMediaTab}
+                            onAdd={() => setShowAddMedia(true)}
+                            onDelete={handleDeleteMedia}
+                        />
+                    )}
+                    {/* Add Exercise Modal */}
+                    {showAddExercise && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                            <div className="bg-[#0a0202] border border-iron-red-900/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+                                <button onClick={() => setShowAddExercise(false)} className="absolute top-4 right-4 text-white/50 hover:text-white"><Icon name="x" className="w-5 h-5" /></button>
+                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6">Add Exercise</h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Exercise Name</label>
+                                        <input type="text" value={newExercise.name} onChange={e => setNewExercise({...newExercise, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500" placeholder="e.g. Incline Bench Press" />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Sets</label>
+                                            <input type="text" value={newExercise.sets} onChange={e => setNewExercise({...newExercise, sets: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-center" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Reps</label>
+                                            <input type="text" value={newExercise.reps} onChange={e => setNewExercise({...newExercise, reps: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-center" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Rest (s)</label>
+                                            <input type="text" value={newExercise.rest} onChange={e => setNewExercise({...newExercise, rest: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-center" />
+                                        </div>
+                                    </div>
+                                    <button onClick={handleAddExercise} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
+                                        Add to Routine
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Add Routine Modal */}
+                    {showAddRoutine && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                            <div className="bg-[#0a0202] border border-iron-red-900/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+                                <button onClick={() => setShowAddRoutine(false)} className="absolute top-4 right-4 text-white/50 hover:text-white"><Icon name="x" className="w-5 h-5" /></button>
+                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6">New Routine</h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Tab Name (e.g. Yoga, Sat)</label>
+                                        <input type="text" value={newRoutine.day} onChange={e => setNewRoutine({...newRoutine, day: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-gold-500" placeholder="e.g. Yoga" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Routine Title</label>
+                                        <input type="text" value={newRoutine.title} onChange={e => setNewRoutine({...newRoutine, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-gold-500" placeholder="e.g. Morning Flexibility" />
+                                    </div>
+                                    <button onClick={handleAddRoutine} className="w-full mt-4 bg-iron-gold-900/50 hover:bg-iron-gold-600/50 border border-iron-gold-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
+                                        Create Routine
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Add Media Modal */}
+                    {showAddMedia && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                            <div className="bg-[#0a0202] border border-iron-cyan-900/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+                                <button onClick={() => setShowAddMedia(false)} className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer"><Icon name="x" className="w-5 h-5" /></button>
+                                <h3 className="text-xl font-bold uppercase tracking-wider mb-6 text-iron-cyan-400">Add to Archive</h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Title</label>
+                                        <input type="text" value={newMedia.title} onChange={e => setNewMedia({...newMedia, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white" placeholder="e.g. Interstellar" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Status</label>
+                                            <select value={newMedia.status} onChange={e => setNewMedia({...newMedia, status: e.target.value})} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
+                                                <option value="Plan to Watch">Plan to Watch</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Completed">Completed</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-white/50 font-mono uppercase mb-1 block">Rating</label>
+                                            <select value={newMedia.rating} onChange={e => setNewMedia({...newMedia, rating: e.target.value})} className="w-full bg-[#110505] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-iron-cyan-500 text-white">
+                                                <option value="-">-</option>
+                                                {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}/10</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button onClick={handleAddMedia} className="w-full mt-4 bg-iron-cyan-900/50 hover:bg-iron-cyan-600/50 border border-iron-cyan-500/50 text-white font-mono uppercase tracking-widest py-4 rounded-xl transition-colors cursor-pointer">
+                                        Add Entry
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
