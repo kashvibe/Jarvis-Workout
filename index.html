@@ -162,77 +162,76 @@
             {
                 id: '01',
                 day: 'Monday',
-                title: 'Chest Destruction',
+                title: 'CHEST & BACK (PUSH/PULL)',
                 theme: 'from-iron-red-600/30 to-iron-red-900/10',
                 textAccent: 'text-iron-red-500',
                 borderAccent: 'border-iron-red-500/30',
                 exercises: [
-                    { name: 'Barbell Bench Press (Flat)', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'Incline Dumbbell Press', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'Decline Cable Crossovers', sets: '4', reps: '10-12', rest: '45s' },
-                    { name: 'Incline Dumbbell Flyes', sets: '3', reps: '12-15', rest: '45s' },
-                    { name: 'Machine Chest Press (Burnout)', sets: '2', reps: 'Failure', rest: '45s' },
+                    { id: "m1", name: "Incline Dumbbell Press", sets: "4", reps: "8-10", rest: "90s", load: 0 },
+                    { id: "m2", name: "Wide-Grip Lat Pulldown", sets: "4", reps: "8-10", rest: "90s", load: 0 },
+                    { id: "m3", name: "Flat Barbell Bench Press", sets: "3", reps: "8-10", rest: "90s", load: 0 },
+                    { id: "m4", name: "Bent-Over Barbell Rows", sets: "3", reps: "8-10", rest: "90s", load: 0 },
+                    { id: "m5", name: "Superset: Incline Flyes & Pulldowns", sets: "3", reps: "12-15", rest: "60s", load: 0 }
                 ]
             },
             {
                 id: '02',
                 day: 'Tuesday',
-                title: 'Back Annihilation',
+                title: 'QUADS & HAMSTRINGS',
                 theme: 'from-orange-600/30 to-amber-900/10',
                 textAccent: 'text-orange-500',
                 borderAccent: 'border-orange-500/30',
                 exercises: [
-                    { name: 'Barbell Deadlift', sets: '4', reps: '6-8', rest: '90s' },
-                    { name: 'Wide-Grip Lat Pulldown', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'Bent-Over Barbell Rows', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'Close-Grip Seated Cable Row', sets: '3', reps: '10-12', rest: '45s' },
-                    { name: 'Straight-Arm Pulldowns', sets: '3', reps: '12-15', rest: '45s' },
+                    { id: "t1", name: "Barbell Back Squat", sets: "4", reps: "6-8", rest: "120s", load: 0 },
+                    { id: "t2", name: "Romanian Deadlifts", sets: "4", reps: "8-10", rest: "120s", load: 0 },
+                    { id: "t3", name: "Leg Press", sets: "3", reps: "10-12", rest: "90s", load: 0 },
+                    { id: "t4", name: "Lying Leg Curls", sets: "3", reps: "12-15", rest: "60s", load: 0 },
+                    { id: "t5", name: "Standing Calf Raises", sets: "4", reps: "15-20", rest: "45s", load: 0 }
                 ]
             },
             {
                 id: '03',
                 day: 'Wednesday',
-                title: 'Leg Demolition',
+                title: 'BICEPS & TRICEPS',
                 theme: 'from-emerald-600/30 to-teal-900/10',
                 textAccent: 'text-emerald-500',
                 borderAccent: 'border-emerald-500/30',
                 exercises: [
-                    { name: 'Barbell Back Squat', sets: '4', reps: '8-10', rest: '90s' },
-                    { name: 'Leg Press', sets: '4', reps: '10-12', rest: '60s' },
-                    { name: 'Bulgarian Split Squats (DB)', sets: '3/leg', reps: '10-12', rest: '45s' },
-                    { name: 'Lying Leg Curls (Hamstrings)', sets: '4', reps: '12-15', rest: '45s' },
-                    { name: 'Standing Calf Raises', sets: '4', reps: '15-20', rest: '45s' },
+                    { id: "w1", name: "Barbell Bicep Curls", sets: "4", reps: "8-10", rest: "60s", load: 0 },
+                    { id: "w2", name: "EZ Bar Skull Crushers", sets: "4", reps: "8-10", rest: "60s", load: 0 },
+                    { id: "w3", name: "Hammer Curls (Dumbbell)", sets: "3", reps: "10-12", rest: "60s", load: 0 },
+                    { id: "w4", name: "Triceps Rope Pushdowns", sets: "3", reps: "12-15", rest: "45s", load: 0 },
+                    { id: "w5", name: "Superset: Cable OH Ext & Rev Curls", sets: "3", reps: "12", rest: "60s", load: 0 }
                 ]
             },
             {
                 id: '04',
                 day: 'Thursday',
-                title: 'Shoulder Obliteration',
+                title: 'SHOULDERS & CORE',
                 theme: 'from-violet-600/30 to-purple-900/10',
                 textAccent: 'text-violet-500',
                 borderAccent: 'border-violet-500/30',
                 exercises: [
-                    { name: 'Seated Overhead Press (DB)', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'Lateral Raises (Dumbbell)', sets: '4', reps: '12-15', rest: '45s' },
-                    { name: 'Reverse Pec Deck (Rear Delts)', sets: '4', reps: '12-15', rest: '45s' },
-                    { name: 'Cable Upright Rows', sets: '3', reps: '10-12', rest: '45s' },
-                    { name: 'Front Plate Raises', sets: '3', reps: '12-15', rest: '45s' },
+                    { id: "th1", name: "Seated Overhead Press (DB)", sets: "4", reps: "8-10", rest: "90s", load: 0 },
+                    { id: "th2", name: "Cable Lateral Raises", sets: "4", reps: "12-15", rest: "60s", load: 0 },
+                    { id: "th3", name: "Reverse Pec Deck", sets: "4", reps: "12-15", rest: "60s", load: 0 },
+                    { id: "th4", name: "Hanging Leg Raises", sets: "3", reps: "12-15", rest: "60s", load: 0 },
+                    { id: "th5", name: "Cable Crunches", sets: "3", reps: "15-20", rest: "45s", load: 0 }
                 ]
             },
             {
                 id: '05',
                 day: 'Friday',
-                title: 'Arm & Core Extremity',
+                title: 'AESTHETIC AMPLIFIER',
                 theme: 'from-cyan-600/30 to-blue-900/10',
                 textAccent: 'text-cyan-500',
                 borderAccent: 'border-cyan-500/30',
                 exercises: [
-                    { name: 'Barbell Bicep Curls', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'EZ Bar Skull Crushers', sets: '4', reps: '8-10', rest: '60s' },
-                    { name: 'Hammer Curls (Dumbbell)', sets: '3', reps: '10-12', rest: '45s' },
-                    { name: 'Triceps Rope Pushdowns', sets: '3', reps: '12-15', rest: '45s' },
-                    { name: 'Hanging Leg Raises', sets: '4', reps: '15-20', rest: '45s' },
-                    { name: 'Weighted Cable Crunches', sets: '4', reps: '15-20', rest: '45s' },
+                    { id: "f1", name: "Incline Machine Press", sets: "3", reps: "10-12", rest: "90s", load: 0 },
+                    { id: "f2", name: "Close-Grip Seated Cable Row", sets: "3", reps: "10-12", rest: "90s", load: 0 },
+                    { id: "f3", name: "Dumbbell Lateral Raises", sets: "4", reps: "10-12", rest: "60s", load: 0 },
+                    { id: "f4", name: "Face Pulls", sets: "3", reps: "15", rest: "60s", load: 0 },
+                    { id: "f5", name: "Pushups (Burnout)", sets: "2", reps: "Failure", rest: "60s", load: 0 }
                 ]
             }
         ];
