@@ -256,7 +256,9 @@
             useEffect(() => {
                 if (!r.current) return;
                 r.current.innerHTML = `<i data-lucide="${name}" class="${className}"></i>`;
-                lucide.createIcons({ root: r.current, attrs: { 'stroke-width': 2 } });
+                if (window.lucide) {
+                    window.lucide.createIcons({ root: r.current, attrs: { 'stroke-width': 2 } });
+                }
             }, [name, className]);
             return <span ref={r} className="inline-flex items-center justify-center"></span>;
         };
@@ -305,7 +307,7 @@
                             <div className="pt-1 md:pt-2 flex-1">
                                 <div className="flex justify-between items-start">
                                     <h5 className="text-white text-xl md:text-2xl font-semibold tracking-tight leading-tight group-hover:text-white transition-colors duration-300 pr-4">
-                                        {exercise.name}
+                                        {exercise?.name || 'Unknown'}
                                     </h5>
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button onClick={onEdit} className="text-white/30 hover:text-white cursor-pointer"><Icon name="edit2" className="w-4 h-4 md:w-5 md:h-5" /></button>
@@ -319,19 +321,19 @@
                         <div className="flex justify-between sm:justify-start gap-4 md:gap-8 shrink-0 py-4 xl:py-0 border-y xl:border-y-0 border-white/5 xl:px-8 w-full xl:w-auto">
                             <div className="flex flex-col gap-1 w-16">
                                 <span className="text-[10px] md:text-xs text-white/40 uppercase tracking-widest font-mono">Sets</span>
-                                <span className="text-white font-mono text-xl md:text-2xl font-medium">{exercise.sets}</span>
+                                <span className="text-white font-mono text-xl md:text-2xl font-medium">{exercise?.sets || 0}</span>
                             </div>
                             <div className="flex flex-col gap-1 w-20">
                                 <span className="text-[10px] md:text-xs text-white/40 uppercase tracking-widest font-mono">Reps</span>
-                                <span className="text-white font-mono text-xl md:text-2xl font-medium">{exercise.reps}</span>
+                                <span className="text-white font-mono text-xl md:text-2xl font-medium">{exercise?.reps || '0'}</span>
                             </div>
                             <div className="flex flex-col gap-1 w-16">
                                 <span className="text-[10px] md:text-xs text-white/40 uppercase tracking-widest font-mono">Rest</span>
                                 <span className={`font-mono text-xl md:text-2xl font-bold ${
-                                    exercise.rest === '45s' ? 'text-iron-red-500' : 
-                                    exercise.rest === '60s' ? 'text-iron-gold-500' : 'text-emerald-500'
+                                    exercise?.rest === '45s' ? 'text-iron-red-500' : 
+                                    exercise?.rest === '60s' ? 'text-iron-gold-500' : 'text-emerald-500'
                                 }`}>
-                                    {exercise.rest}
+                                    {exercise?.rest || '0s'}
                                 </span>
                             </div>
                         </div>
@@ -381,10 +383,10 @@
                         <div className="border-t border-white/5 pt-4 flex flex-col gap-3">
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] md:text-xs text-white/40 uppercase tracking-widest font-mono">Set Tracking</span>
-                                <span className="text-xs font-mono text-white/60">{completedSets} / {parseInt(exercise.sets) || 1} Completed</span>
+                                <span className="text-xs font-mono text-white/60">{completedSets} / {parseInt(exercise?.sets) || 1} Completed</span>
                             </div>
                             <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2 items-center">
-                                {Array.from({ length: parseInt(exercise.sets) || 1 }).map((_, i) => (
+                                {Array.from({ length: parseInt(exercise?.sets) || 1 }).map((_, i) => (
                                     <button key={i} onClick={i === completedSets ? onSetComplete : undefined} disabled={i !== completedSets}
                                         className={`w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-full border flex items-center justify-center transition-all duration-300 text-lg md:text-xl font-bold ${i < completedSets ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]' : i === completedSets ? 'border-white hover:border-white hover:bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer' : 'border-white/10 text-white/20 cursor-not-allowed'}`}
                                     >
@@ -549,9 +551,13 @@
 
             useEffect(() => {
                 if (!editorRef.current || quillRef.current) return;
-                const q = new Quill(editorRef.current, { theme: 'snow', placeholder: placeholder || 'Enter text...', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] } });
-                q.on('text-change', () => onChange(q.root.innerHTML));
-                quillRef.current = q;
+                if (window.Quill) {
+                    const q = new Quill(editorRef.current, { theme: 'snow', placeholder: placeholder || 'Enter text...', modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] } });
+                    q.on('text-change', () => onChange(q.root.innerHTML));
+                    quillRef.current = q;
+                } else {
+                    editorRef.current.innerHTML = '<div class="p-4 text-white/50 text-sm font-mono">Rich text editor could not be loaded. Please check your internet connection.</div>';
+                }
             }, []);
 
             useEffect(() => {
@@ -692,9 +698,25 @@
                 startTimer(cur + 1 === max ? 60 : parseInt(rest) || 60);
             };
 
+            const safeLocalStorageSet = (k, v) => {
+                try {
+                    v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v);
+                } catch (e) {
+                    console.warn("localStorage error", e);
+                }
+            };
+            const safeLocalStorageGet = (k, def) => {
+                try {
+                    return localStorage.getItem(k) || def;
+                } catch (e) {
+                    console.warn("localStorage get error", e);
+                    return def;
+                }
+            };
+
             const saveToCloud = (k, v) => {
                 if (!user) return;
-                v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v);
+                safeLocalStorageSet(k, v);
                 const f = { apex_protocol_ironman_weights: 'weights', apex_protocol_ironman_sets: 'sets', apex_protocol_workouts: 'workouts', apex_protocol_media: 'media', apex_protocol_media_tabs: 'mediaTabs' }[k];
                 if (f) db.collection('users').doc(user.uid).set({ [f]: v }, { merge: true }).catch(console.error);
             };
@@ -708,7 +730,7 @@
 
             const handlePushToCloud = () => {
                 if (!user) return;
-                const get = (k, def) => localStorage.getItem(k) || def;
+                const get = (k, def) => safeLocalStorageGet(k, def);
                 db.collection('users').doc(user.uid).set({
                     weights: get('apex_protocol_ironman_weights', "{}"),
                     sets: get('apex_protocol_ironman_sets', "{}"),
@@ -743,14 +765,21 @@
                 if (!user) return;
                 db.collection('users').doc(user.uid).get().then(doc => {
                     const d = doc.exists ? doc.data() : MIGRATION_PAYLOAD;
-                    const parse = (val, fallback) => val ? JSON.parse(val) : fallback;
+                    const parse = (val, fallback) => {
+                        try {
+                            return val ? JSON.parse(val) : fallback;
+                        } catch (e) {
+                            console.warn("JSON parse error for", val, e);
+                            return fallback;
+                        }
+                    };
                     
                     setWeights(parse(d.weights, {}));
                     setCompletedSets(parse(d.sets, {}));
                     const p = parse(d.workouts, workoutData);
                     setWorkouts(p && p.length > 0 ? p : workoutData);
-                    if (d.media) setMediaData(JSON.parse(d.media));
-                    if (d.mediaTabs) setMediaTabs(JSON.parse(d.mediaTabs));
+                    if (d.media) setMediaData(parse(d.media, {}));
+                    if (d.mediaTabs) setMediaTabs(parse(d.mediaTabs, defaultMediaTabs));
                     
                     if (!doc.exists) db.collection('users').doc(user.uid).set(MIGRATION_PAYLOAD, { merge: true }).catch(console.error);
                 }).catch(console.error).finally(() => setIsLoaded(true));
@@ -842,7 +871,7 @@
             if (!user) return <AuthScreen />;
             if (!isLoaded) return null;
 
-            const currentDayData = workouts.find(d => d.id === activeDay) || workouts[0];
+            const currentDayData = workouts?.find(d => d.id === activeDay) || workouts?.[0] || workoutData[0] || { id: 'error', title: 'Error Loading', day: 'Error', theme: 'from-iron-red-600/30 to-iron-red-900/10', textAccent: 'text-white', borderAccent: 'border-white/30', exercises: [] };
 
             return (
                 <div className="bg-[#050101] min-h-screen text-slate-200 font-sans selection:bg-iron-red-500/30 selection:text-iron-gold-200 overflow-x-hidden relative">
@@ -1003,7 +1032,7 @@
                                     <div className={`absolute inset-0 bg-gradient-to-b ${currentDayData.theme} opacity-[0.03] rounded-[40px] pointer-events-none -m-4 md:-m-8 z-0`} />
                                     
                                     <div className="relative z-10 flex flex-col w-full">
-                                        {currentDayData.exercises.map((exercise, exerciseIdx) => {
+                                        {currentDayData.exercises?.map((exercise, exerciseIdx) => {
                                             const weightKey = `${currentDayData.id}_${exerciseIdx}`;
                                             return (
                                                 <ExerciseRow 
@@ -1015,7 +1044,7 @@
                                                     onSaveWeight={handleSaveWeight}
                                                     colorAccent={currentDayData.textAccent}
                                                     completedSets={completedSets[`${getTodayString()}_${currentDayData.id}_${exerciseIdx}`] || 0}
-                                                    onSetComplete={() => handleSetComplete(currentDayData.id, exerciseIdx, parseInt(exercise.sets) || 1, exercise.rest)}
+                                                    onSetComplete={() => handleSetComplete(currentDayData.id, exerciseIdx, parseInt(exercise?.sets) || 1, exercise?.rest)}
                                                     onEdit={() => handleEditExerciseClick(currentDayData.id, exerciseIdx, exercise)}
                                                     onDelete={() => handleDeleteExercise(currentDayData.id, exerciseIdx)}
                                                 />
