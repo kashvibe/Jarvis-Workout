@@ -712,7 +712,7 @@
                 db.collection('users').doc(user.uid).set({
                     weights: get('apex_protocol_ironman_weights', "{}"),
                     sets: get('apex_protocol_ironman_sets', "{}"),
-                    workouts: get('apex_protocol_workouts', "[]"),
+                    workouts: get('apex_protocol_workouts', JSON.stringify(workoutData)),
                     media: get('apex_protocol_media', "{}"),
                     mediaTabs: get('apex_protocol_media_tabs', null)
                 }, { merge: true })
@@ -747,7 +747,8 @@
                     
                     setWeights(parse(d.weights, {}));
                     setCompletedSets(parse(d.sets, {}));
-                    setWorkouts(parse(d.workouts, workoutData));
+                    const p = parse(d.workouts, workoutData);
+                    setWorkouts(p && p.length > 0 ? p : workoutData);
                     if (d.media) setMediaData(JSON.parse(d.media));
                     if (d.mediaTabs) setMediaTabs(JSON.parse(d.mediaTabs));
                     
